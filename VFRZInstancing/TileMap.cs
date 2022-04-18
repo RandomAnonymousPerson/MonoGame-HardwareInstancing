@@ -139,6 +139,11 @@ namespace VFRZInstancing
                     var pos = new Vector2(x * 16 + startPositionX, x * 8 + startPositionY);
                     this.instances[y * this.sizeX + x].World = new Vector3(pos.X, pos.Y, 1 - pos.Y / (this.sizeZ * 16));
                     this.instances[y * this.sizeX + x].AtlasCoordinate = new Color((byte)randomTile.Next(0, 28), (byte)0, (byte)0, (byte)0);
+
+                    ref int NewAtlasCoordinate = ref instances[y * sizeX + x].NewAtlasCoordinate;
+                    InstancesAtlasCoordinate.SetAtlasIndex(ref NewAtlasCoordinate, 0);
+                    InstancesAtlasCoordinate.SetTilePositionInAtlas(ref NewAtlasCoordinate, randomTile.Next(0, 28), 2);
+                    InstancesAtlasCoordinate.SetTileSizeInAtlas(ref NewAtlasCoordinate, 1, 2);
                 }
 
                 //isometric offset
@@ -205,8 +210,8 @@ namespace VFRZInstancing
             this.effect = this.Game.Content.Load<Effect>("instance_effect");
             var textures = new List<Texture2D>();
             //Image need to be 2048 x 2048
-            textures.Add(this.Game.Content.Load<Texture2D>("tiles30x64"));
             textures.Add(this.Game.Content.Load<Texture2D>("tiles32x64"));
+            textures.Add(this.Game.Content.Load<Texture2D>("tiles30x64"));
 
             #region Init3DTexture
             //max 2048 otherwise it draws black maybe opengl limitation
@@ -227,8 +232,8 @@ namespace VFRZInstancing
 
             //here somehow load how big a single Image is inside a Texture2D
             _singleImageDimensions = new Vector2[textures.Count];
-            _singleImageDimensions[0] = new Vector2(30, 64);
-            _singleImageDimensions[1] = new Vector2(32,64);
+            _singleImageDimensions[0] = new Vector2(32, 64);
+            _singleImageDimensions[1] = new Vector2(30,64);
             
 
            
