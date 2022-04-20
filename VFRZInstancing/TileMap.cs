@@ -64,7 +64,7 @@ namespace VFRZInstancing
         #region CameraData
 
         private Vector2 _cameraPosition = new Vector2(0, 1000);
-        private float scale = 1;
+        public float scale = 1;
         private Matrix _transform;
         private Matrix _projection;
 
@@ -317,13 +317,13 @@ namespace VFRZInstancing
 
             if (currentMouseWheelValue > previousMouseWheelValue)
             {
-                scale += 0.2f;
+                if (scale < 5.0f) scale *= 2;
 
                 UpdateCamera();
             }
             else if (currentMouseWheelValue < previousMouseWheelValue)
             {
-                if(scale > 0.4f) scale -= 0.2f;
+                if (scale > 0.4f) scale /= 2;
 
                 UpdateCamera();
             }
@@ -344,6 +344,10 @@ namespace VFRZInstancing
                 {
                     instances[i].AtlasCoordinate.A = (byte)((imageWidth32Pixel)?1:0);
                 }
+            }
+            if (_ks.IsKeyDown(Keys.F4) && before.IsKeyUp(Keys.F4))
+            {
+                useRenderTarget = !useRenderTarget;
             }
 
             previousMouseWheelValue = currentMouseWheelValue;
@@ -418,12 +422,14 @@ namespace VFRZInstancing
                   Matrix.CreateScale(scale, scale, 1) *
                   Matrix.CreateTranslation(new Vector3(GraphicsDevice.Viewport.Width * 0.5f, GraphicsDevice.Viewport.Height * 0.5f, 0));
         }
-    
+
         /// <summary>
         /// Draw the cube map using one single vertexbuffer.
         /// </summary>
         /// <param name="gameTime"></param>
-        public void Draw(GameTime gameTime)
+        public bool useRenderTarget = false;
+        private RenderTarget2D renderTarget;
+        public RenderTarget2D Draw(GameTime gameTime)
         {
             // Set the effect technique and parameters
             this.effect.CurrentTechnique = effect.Techniques["Instancing"];
@@ -443,14 +449,32 @@ namespace VFRZInstancing
             this.GraphicsDevice.BlendState = BlendState.NonPremultiplied;
             this.GraphicsDevice.RasterizerState = RasterizerState.CullNone;
             this.GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-
-
+            
             this.GraphicsDevice.SamplerStates[0] = SS_PointBorder;
             
             this.GraphicsDevice.SetVertexBuffers(bindings);
+
+            
+            if (renderTarget != null)
+            {
+                renderTarget.Dispose();
+            }
+
+            if (useRenderTarget)
+            {
+                renderTarget = new RenderTarget2D(
+                    GraphicsDevice,
+                    (int)(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / scale),
+                    (int)(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / scale));
+
+                this.GraphicsDevice.SetRenderTarget(renderTarget);
+            }
+            
             this.GraphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, InstanceCount);
 
-         
+            this.GraphicsDevice.SetRenderTarget(null);
+
+            return renderTarget;
         }
        #endregion
     }
